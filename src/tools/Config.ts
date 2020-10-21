@@ -18,10 +18,21 @@ const Default_ENV = {
   HOST: "http://localhost:4000",
   REDIS_URI_CACHE_FILES: "redis://localhost:6379/4",
   REDIS_DEFAULT_CACHE_TIME: 3600,
-  ACCESS_KEY_ID: "",
-  SECRET_ACCESS_KEY: "",
-  BUCKET: "",
-  AWS_FULL_URL: "",
+  ACCESS_KEY_ID: null,
+  SECRET_ACCESS_KEY: null,
+  BUCKET: null,
+  AWS_FULL_URL: null,
+}
+
+const checkRequiredSettings = () => {
+  const requiredValues = [ENV.AWS_FULL_URL, ENV.BUCKET, ENV.SECRET_ACCESS_KEY, ENV.ACCESS_KEY_ID];
+  for (const field of requiredValues) {
+    const selectedEnv = getEnv(field);
+    if (selectedEnv === null) {
+      console.error(`Required parameter ${field} don't configured.`);
+      process.exit(1);
+    }
+  }
 }
 
 const formatEnv = (value, format) => {
@@ -58,4 +69,5 @@ export {
   getEnvFormated,
   isProduction,
   isDebug,
+  checkRequiredSettings,
 };
