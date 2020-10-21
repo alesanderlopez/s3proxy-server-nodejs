@@ -42,14 +42,14 @@ class S3Proxy {
     }
     
     const fileRedisCache = await getRedis().get(url);
-    if(fileRedisCache && true) {
+    if(fileRedisCache) {
       return this.sendResponse(res, fileRedisCache);
     }
 
     try {
       const remoteFile = await this.s3.getObject({
         Key: url,
-        Bucket: 'assets.imperionstudio.com',
+        Bucket: getEnv(ENV.BUCKET),
       }).promise();
 
       if (remoteFile) {
