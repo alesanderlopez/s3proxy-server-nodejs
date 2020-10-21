@@ -1,0 +1,25 @@
+{
+  "name": "s3proxy-server-nodejs",
+  "version": "1.0.0",
+  "description": "NodeJS server proxy for server S3 files",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "dotenv -- nodemon -e ts,graphql -x ts-node src/index.ts",
+    "debug": "dotenv -- nodemon -e ts,graphql -x ts-node --inspect src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alesander López Gil",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.656.0",
+    "@types/node": "^14.11.10",
+    "express": "^4.17.1",
+    "ioredis": "^4.16.0"
+  },
+  "devDependencies": {
+    "dotenv-cli": "1.4.0",
+    "nodemon": "1.19.2",
+    "ts-node": "7.0.1",
+    "typescript": "3.2.2"
+  }
+}
