@@ -3,7 +3,7 @@ const maybeJSON = (text) => {
   try {
     let response = JSON.parse(text);
     if (response && response.Body) {
-      response.Body = Buffer.from(response.Body.data).toString('base64');;
+      response.Body = Buffer.from(response.Body);
     }
     return response;
   } catch (e) {
