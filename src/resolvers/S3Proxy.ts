@@ -19,6 +19,8 @@ class S3Proxy {
       },
     });
     this.awsUri = getEnv(ENV.AWS_FULL_URL);
+    console.log("# Default redis cache time:", getEnv(ENV.REDIS_DEFAULT_CACHE_TIME));
+    console.log("# Bucket selected:", getEnv(ENV.BUCKET));
   }
 
   static getInstance = () => {
@@ -43,6 +45,7 @@ class S3Proxy {
     
     const fileRedisCache = await getRedis().get(url);
     if(fileRedisCache) {
+      console.log(`${url} (REDIS PROVIDED)`);
       return this.sendResponse(res, fileRedisCache);
     }
 
@@ -53,6 +56,7 @@ class S3Proxy {
       }).promise();
 
       if (remoteFile) {
+        console.log(`${url} (S3 PROVIDED)`);
         getRedis().set({ key: url, data: remoteFile });
         return this.sendResponse(res, remoteFile);
       }
@@ -60,12 +64,13 @@ class S3Proxy {
     catch(e) {}
     
     const remoteFileUrl = this.getBucketFile(url);
+    console.log(`${url} (REDIRECT) -> ${remoteFileUrl}`);
     res.status(302).redirect(remoteFileUrl);
   }
 
   private getBucketFile = url => `${this.awsUri}/${url}`;
 
-  private sendResponse(res, file) {
+  private sendResponse = (res, file) => {
     res.setHeader('ETag', file.ETag);
     res.setHeader('Content-Length', file.ContentLength);
     res.setHeader('Content-Type', file.ContentType);

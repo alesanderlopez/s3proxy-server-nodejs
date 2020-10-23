@@ -1,7 +1,10 @@
 
 const maybeJSON = (text) => {
   try {
-    const response = JSON.parse(text);
+    let response = JSON.parse(text);
+    if (response && response.Body) {
+      response.Body = new Buffer(response.Body.data);
+    }
     return response;
   } catch (e) {
     return text;
@@ -20,4 +23,4 @@ const maybeToJSON = (text) => {
 export {
   maybeJSON,
   maybeToJSON,
-}
+};
