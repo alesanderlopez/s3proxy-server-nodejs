@@ -1,0 +1,121 @@
+# Source: node/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3proxy-server-nodejs-node
+  labels:
+    app: s3proxy-server-nodejs
+    chart: node-11.4.21
+    release: s3proxy-server-nodejs
+    heritage: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 4000
+      targetPort: http
+      nodePort: null
+  selector:
+    app: s3proxy-server-nodejs
+    release: s3proxy-server-nodejs
+---
+# Source: node/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3proxy-server-nodejs-node
+  labels:
+    app: s3proxy-server-nodejs
+    chart: node-11.4.21
+    release: s3proxy-server-nodejs
+    heritage: Helm
+spec:
+  selector:
+    matchLabels:
+      app: s3proxy-server-nodejs
+      release: s3proxy-server-nodejs
+  template:
+    metadata:
+      labels:
+        app: s3proxy-server-nodejs
+        chart: node-11.4.21
+        release: s3proxy-server-nodejs
+        heritage: Helm
+    spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      containers:
+        - name: node
+          image: alesanderlopez/s3-cache-proxy-nodejs
+          imagePullPolicy: "IfNotPresent"
+          #imagePullPolicy: "Always"
+          env:
+            - name: DATA_FOLDER
+              value: "/app"
+            - name: HTTP_PORT
+              value: "4000"
+            - name: REDIS_DEFAULT_CACHE_TIME
+              value: "3600"
+            - name: NODE_ENV
+              value: "production"
+            - name: ACCESS_KEY_ID
+              value: ""
+            - name: SECRET_ACCESS_KEY
+              value: ""
+            - name: BUCKET
+              value: "your.bucket.name"
+            - name: AWS_FULL_URL
+              value: "https://...."
+            - name: REDIS_URI_CACHE_FILES
+              value: "redis://:PASSWORD@HOST:6379/4"
+          workingDir: /app
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              npm run worker
+          ports:
+            - name: http
+              containerPort: 4000
+          livenessProbe:
+            httpGet:
+              path: /check
+              port: http
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /check
+              port: http
+            initialDelaySeconds: 10
+            timeoutSeconds: 3
+            periodSeconds: 5
+          resources: {}
+      #            requests:
+      #              memory: "64Mi"
+      #              cpu: "100m"
+      #            limits:
+      #              memory: "100Mi"
+      #              cpu: "150m"
+
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: s3proxy-server-nodejs-node
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: s3proxy-server-nodejs-node
+  minReplicas: 1
+  maxReplicas: 1
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
