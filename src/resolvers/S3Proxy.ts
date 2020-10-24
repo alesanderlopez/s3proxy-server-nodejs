@@ -58,7 +58,7 @@ class S3Proxy {
       url = url.substring(1);
     }
     
-    const fileRedisCache = await getRedis().get(url);
+    const fileRedisCache = await this.getRedisFile(url);
     if(fileRedisCache) {
       console.log(`${url} (REDIS PROVIDED)`);
       return this.sendResponse(res, fileRedisCache);
@@ -95,6 +95,15 @@ class S3Proxy {
     catch (e) {
       return null;
     }
+  }
+
+  private getRedisFile = async (url) => {
+    const fileRedisCache = await getRedis().get(url);
+    if (fileRedisCache) {
+      getRedis().updateExpire({ key: url, EX: getEnv(ENV.REDIS_DEFAULT_CACHE_TIME) });
+      return fileRedisCache
+    }
+    return null;
   }
 
   private getBucketFile = url => `${this.awsUri}/${url}`;

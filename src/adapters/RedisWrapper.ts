@@ -8,6 +8,7 @@ interface CacheInterface {
     get(key): any,
     getMany(keys): any,
     set({ key, data, EX }): any,
+    updateExpire({ key, EX }): any,
     getRawInstance(): any,
 }
 
@@ -49,6 +50,10 @@ export default class RedisWrapper implements CacheInterface {
 
     set = ({ key, data = "", EX = getEnv(ENV.REDIS_DEFAULT_CACHE_TIME) }) => {
         return this.redis.set(key, data, 'EX', EX);
+    }
+
+    updateExpire = ({ key, EX = getEnv(ENV.REDIS_DEFAULT_CACHE_TIME) }) => {
+      return this.redis.expire(key, EX);
     }
 
 }

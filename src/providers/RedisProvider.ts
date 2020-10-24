@@ -63,6 +63,10 @@ export default class RedisProvider {
         return this.getRedisWrapper(RedisServerType.FILE_CACHE).set({ key, data, EX });
     }
 
+    updateExpire = ({ key, EX = getEnv(ENV.REDIS_DEFAULT_CACHE_TIME) }) => {
+      return this.getRedisWrapper(RedisServerType.FILE_CACHE).updateExpire({ key, EX });
+    }
+
 }
 
 const getRedis = () => RedisProvider.getInstance();
