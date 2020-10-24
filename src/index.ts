@@ -6,6 +6,7 @@ const app = express();
 const s3Proxy = getS3Proxy();
 
 app.route('/check').get(s3Proxy.check);
+app.route('/purge/*').get(s3Proxy.purgeFile);
 app.route('/*').get(s3Proxy.requestFile);
 
 let PORT = getEnv(ENV.HTTP_PORT, 4000);

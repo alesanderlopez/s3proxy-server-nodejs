@@ -1,5 +1,6 @@
 
 import * as AWS from 'aws-sdk';
+import * as mime from 'mime-types';
 import { getRedis } from "../providers/RedisProvider";
 import { ENV, getEnv } from '../tools/Config';
 
@@ -36,6 +37,20 @@ class S3Proxy {
     res.json({ status: "OK", services: services });
   }
 
+  purgeFile = (req, res) => {
+    let { url } = req;
+
+    url = url.replace("/purge/", '');
+
+    if (url && url.length !== 0 && url[0] === "/") {
+      url = url.substring(1);
+    }
+
+    getRedis().flushKey(url);
+
+    res.json({ key: url, success: true});
+  }
+
   requestFile = async (req, res) => {
     let {url} = req;
 
@@ -49,23 +64,37 @@ class S3Proxy {
       return this.sendResponse(res, fileRedisCache);
     }
 
-    try {
-      const remoteFile = await this.s3.getObject({
-        Key: url,
-        Bucket: getEnv(ENV.BUCKET),
-      }).promise();
+    const remoteFile = await this.getS3File({
+      url,
+      bucket: getEnv(ENV.BUCKET),
+    });
 
-      if (remoteFile) {
-        console.log(`${url} (S3 PROVIDED)`);
-        getRedis().set({ key: url, data: remoteFile });
-        return this.sendResponse(res, remoteFile);
-      }
+    if (remoteFile) {
+      console.log(`${url} (S3 PROVIDED)`);
+      getRedis().set({ key: url, data: remoteFile });
+      return this.sendResponse(res, remoteFile);
     }
-    catch(e) {}
+
     
     const remoteFileUrl = this.getBucketFile(url);
     console.log(`${url} (REDIRECT) -> ${remoteFileUrl}`);
     res.status(302).redirect(remoteFileUrl);
+  }
+
+  private getS3File = async ({ url, bucket }) => {
+    try {
+      const remoteFile = await this.s3.getObject({
+        Key: url,
+        Bucket: bucket,
+      }).promise();
+      if (remoteFile && remoteFile.ContentType) {
+        remoteFile.ContentType = mime.lookup(url);
+      }
+      return remoteFile;
+    }
+    catch (e) {
+      return null;
+    }
   }
 
   private getBucketFile = url => `${this.awsUri}/${url}`;
