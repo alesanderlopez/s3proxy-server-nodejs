@@ -8,6 +8,7 @@ COPY --from=gitclone /app /app
 WORKDIR /app
 RUN npm install
 RUN npm cache clean --force 
+RUN npm run tsc
 
 FROM docker.io/bitnami/node:12.12.0-r8-prod as node
 COPY --from=npminstall /app /app
