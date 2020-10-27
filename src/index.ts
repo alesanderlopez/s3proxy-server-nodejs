@@ -1,3 +1,4 @@
+require('dotenv').config();
 import { getS3Proxy } from "./resolvers/S3Proxy";
 import { checkRequiredSettings, ENV, getEnv } from "./tools/Config";
 
