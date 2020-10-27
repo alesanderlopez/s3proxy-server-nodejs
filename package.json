@@ -5,10 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "tsc": "tsc",
-    "prod": "node dist/index.js",
+    "prod": "tsc && node dist/index.js",
     "start": "dotenv -- nodemon -e ts -x ts-node --transpile-only src/index.ts",
     "debug": "dotenv -- nodemon -e ts -x ts-node --inspect src/index.ts",
-    "build_push": "tsc && sh docker/build_push.sh",
+    "build_push": "sh docker/build_push.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Alesander López Gil",
